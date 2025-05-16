@@ -1,6 +1,6 @@
 # 📚 Difficulty-Model
 
-Project for AIR5101 — A machine learning model to estimate or rank task difficulty based on dialogue data.
+A machine learning model to estimate or rank task difficulty based on dialogue data.
 
 ---
 
