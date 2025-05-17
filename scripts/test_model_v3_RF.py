@@ -36,19 +36,15 @@ print("Step 3: 加载模型并进行预测...")
 rf_model = joblib.load('../models/rf_reward_predictor.pkl')
 y_pred = rf_model.predict(X_test)
 
-# -----------------------
-# 更新预测值：pred = (pred + true) / 2
-# -----------------------
-y_pred_updated = (y_pred + 1.1 * y_test) / 2.1
 
 # -----------------------
 # 评估指标计算
 # -----------------------
 print("Step 4: 计算评估指标...")
-mse = mean_squared_error(y_test, y_pred_updated)
+mse = mean_squared_error(y_test, y_pred)
 rmse = np.sqrt(mse)
-mae = mean_absolute_error(y_test, y_pred_updated)
-r2 = r2_score(y_test, y_pred_updated)
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
 
 # 保存指标为 CSV
 metrics_df = pd.DataFrame({
@@ -61,7 +57,7 @@ metrics_df.to_csv(os.path.join(results_dir, 'evaluation_metrics.csv'), index=Fal
 # 可视化：预测 vs 真实值
 # -----------------------
 plt.figure(figsize=(6, 6))
-sns.scatterplot(x=y_test, y=y_pred_updated, alpha=0.4)
+sns.scatterplot(x=y_test, y=y_pred, alpha=0.4)
 plt.plot([-2, 5], [-2, 5], 'r--')
 plt.xlabel('True Reward')
 plt.ylabel('Predicted Reward')
@@ -74,7 +70,7 @@ plt.close()
 # -----------------------
 # 可视化：残差分布
 # -----------------------
-residuals = y_test - y_pred_updated
+residuals = y_test - y_pred
 plt.figure(figsize=(8, 4))
 sns.histplot(residuals, bins=50, kde=True)
 plt.title('Residual Distribution')
@@ -90,7 +86,7 @@ print("Step 5: 随机抽样打印预测值和真实值...")
 sample_indices = random.sample(range(len(df_test)), 10)
 sample_df = df_test.iloc[sample_indices].copy()
 sample_df['original_predicted'] = y_pred[sample_indices]
-sample_df['updated_predicted'] = y_pred_updated[sample_indices]
+sample_df['updated_predicted'] = y_pred[sample_indices]
 sample_df.to_csv(os.path.join(results_dir, 'sample_predictions.csv'), index=False)
 
 # 打印抽样内容

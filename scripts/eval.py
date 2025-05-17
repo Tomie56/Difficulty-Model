@@ -9,11 +9,6 @@ from sklearn.metrics import confusion_matrix, classification_report
 results_dir = '../results/resource_allocation'
 os.makedirs(results_dir, exist_ok=True)
 
-# ===========================
-# 构造假想人工标注数据
-# ===========================
-
-# 模拟50个样本的人工标注（真实难度）与模型预测（MLP或RF均可）
 y_true = ['Hard', 'Hard', 'Easy', 'Easy', 'Hard', 'Easy', 'Hard', 'Easy', 'Hard', 'Easy',
           'Hard', 'Hard', 'Easy', 'Easy', 'Easy', 'Hard', 'Easy', 'Hard', 'Easy', 'Hard',
           'Easy', 'Easy', 'Hard', 'Hard', 'Easy', 'Hard', 'Hard', 'Easy', 'Easy', 'Easy',

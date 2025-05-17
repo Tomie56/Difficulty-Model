@@ -80,18 +80,14 @@ with torch.no_grad():
 predictions = np.concatenate(predictions, axis=0).flatten()
 true_values = np.concatenate(true_values, axis=0).flatten()
 
-# -----------------------
-# 更新预测值为均值：(pred + true) / 2
-# -----------------------
-updated_predictions = (1.2 * predictions + true_values) / 2.2
 
 # -----------------------
 # 重新计算指标
 # -----------------------
-mse = mean_squared_error(true_values, updated_predictions)
+mse = mean_squared_error(true_values, predictions)
 rmse = np.sqrt(mse)
-mae = mean_absolute_error(true_values, updated_predictions)
-r2 = r2_score(true_values, updated_predictions)
+mae = mean_absolute_error(true_values, predictions)
+r2 = r2_score(true_values, predictions)
 
 metrics_df = pd.DataFrame({
     'Metric': ['MSE', 'RMSE', 'MAE', 'R²'],
@@ -103,7 +99,7 @@ metrics_df.to_csv(os.path.join(results_dir, 'evaluation_metrics.csv'), index=Fal
 # 可视化：更新后预测 vs 真实值
 # -----------------------
 plt.figure(figsize=(6, 6))
-sns.scatterplot(x=true_values, y=updated_predictions, alpha=0.4)
+sns.scatterplot(x=true_values, y=predictions, alpha=0.4)
 plt.plot([-2, 5], [-2, 5], 'r--')
 plt.xlabel('True Reward')
 plt.ylabel('Predicted Reward')
@@ -116,7 +112,7 @@ plt.close()
 # -----------------------
 # 可视化：更新后残差分布
 # -----------------------
-residuals = true_values - updated_predictions
+residuals = true_values - predictions
 plt.figure(figsize=(8, 4))
 sns.histplot(residuals, bins=50, kde=True)
 plt.title('Residual Distribution')
@@ -131,5 +127,5 @@ plt.close()
 sample_indices = random.sample(range(len(df_test)), 10)
 sample_df = df_test.iloc[sample_indices].copy()
 sample_df['original_predicted'] = predictions[sample_indices]
-sample_df['updated_predicted'] = updated_predictions[sample_indices]
+sample_df['updated_predicted'] = predictions[sample_indices]
 sample_df.to_csv(os.path.join(results_dir, 'sample_predictions.csv'), index=False)
