@@ -1,6 +1,6 @@
 # 📚 Difficulty-Model
 
-A machine learning model to estimate or rank task difficulty based on dialogue data.
+A machine learning framework for predicting prompt difficulty based on dialogue data. The system uses reward prediction models (MLP, Random Forest) trained on embeddings extracted from LMSYS-Chat conversations. It supports simulation of difficulty-aware resource allocation and human validation experiments.
 
 ---
 
@@ -8,43 +8,47 @@ A machine learning model to estimate or rank task difficulty based on dialogue d
 
 ```
 Difficulty-Model/
-├── datas/                    # 原始数据 & 处理脚本
-│   └── load_lmsys.py
-├── models/                   # 训练模型及推理脚本
-│   └── *.pth, *.pkl, *.py
-├── scripts/                  # 数据清洗、处理、训练脚本
-│   ├── data_cleaning.py
-│   ├── data_processing_v2.py
-│   ├── embeddings.py
-│   └── train_v2.py
-├── requirements.txt          # Python依赖包
-└── README.md                 # 项目说明文件
+├── datas/                      # 数据目录（原始数据、嵌入数据）
+├── models/                     # 保存训练好的模型（.pth/.pkl）及加载脚本
+├── results/                    # 模型输出结果（图表、分配结果等）
+├── scripts/                    # 数据处理与训练评估脚本
+│   ├── embeddings.py           # 生成对话嵌入
+│   ├── allocate.py             # 难度感知资源分配模拟
+│   ├── data_cleaning.py        # 清洗原始LMSYS数据
+│   ├── data_processing_v2.py   # 格式化训练数据
+│   ├── train_v2.py             # 训练 MLP 主模型
+│   ├── train_v3_RF.py          # 训练 Random Forest 模型
+│   ├── test_model_v3_RF.py     # 测试 RF 模型
+│   ├── test_model_v1/v2/v4/v5.py  # 不同 MLP 模型版本测试
+│   └── generate_rewards.py     # 使用 reward model 生成打分标签
+├── README.md                   # 当前说明文件
+├── requirements.txt            # Python 依赖项
+└── LICENSE
 ```
 
 ---
 
 ## 📥 安装依赖
 
-请使用 Python 3.8+ 环境，推荐使用虚拟环境：
+使用 Python 3.8+ 环境，建议使用虚拟环境隔离：
 
 ```bash
-# 创建虚拟环境
+# 创建并激活虚拟环境
 python -m venv env
-source env/bin/activate    # Linux/Mac
-env\Scripts\activate       # Windows
+source env/bin/activate        # macOS/Linux
+env\Scripts\activate         # Windows
 
-# 安装依赖
+# 安装依赖包
 pip install -r requirements.txt
 ```
 
 ---
 
-## 🔄 数据处理
+## 🔄 数据处理流程
 
-运行以下命令以加载和处理原始数据：
+请顺序执行以下命令以生成训练数据：
 
 ```bash
-python ./datas/load_lmsys.py
 python ./scripts/data_cleaning.py
 python ./scripts/data_processing_v2.py
 python ./scripts/embeddings.py
@@ -52,25 +56,68 @@ python ./scripts/embeddings.py
 
 ---
 
-## 🧠 模型训练
+## 🧠 模型训练与评估
 
-使用以下命令进行模型训练：
+训练主模型（MLP）：
 
 ```bash
 python ./scripts/train_v2.py
 ```
 
+训练基线模型（Random Forest）：
+
+```bash
+python ./scripts/train_v3_RF.py
+```
+
+模型评估：
+
+```bash
+python ./scripts/test_model_v3_RF.py
+python ./scripts/test_model_v2.py
+```
+
 ---
 
-## 📝 模型说明
+## 🚀 难度感知资源分配模拟
 
-模型使用预训练语言模型生成的嵌入表示，配合回归/分类模型预测对话样本的相对难度。训练后模型保存在 `models/` 目录下，支持直接推理或评估。
+使用训练好的模型对测试集进行分组预测与资源分配：
+
+```bash
+python ./scripts/allocate.py
+```
+
+结果包括：平均 reward 分布、t 检验显著性分析、人类标注验证结果等，输出文件存于 `results/resource_allocation/`。
 
 ---
 
+## 📝 人工验证实验
 
-## 📮 联系方式
+我们随机抽样 50 条测试对话，人工与 DeepSeek-V3 协同进行“易/难”标签标注。运行后生成混淆矩阵、准确率、F1 分数报告等：
 
-224040266@link.cuhk.edu.cn
+```bash
+# 已集成于 allocate.py
+```
 
 ---
+
+## ⚙️ 软件环境
+
+| 库              | 版本     |
+|----------------|----------|
+| Python         | 3.12     |
+| PyTorch        | 2.1.0    |
+| NumPy          | 1.24.0   |
+| pandas         | 1.5.3    |
+| scikit-learn   | 1.2.0    |
+| scipy          | 1.10.0   |
+| transformers   | 4.27.0   |
+| tqdm           | 4.65.0   |
+
+---
+
+## 📮 联系我们
+
+如有问题，请联系项目负责人：
+
+📧 224040266@link.cuhk.edu.cn
