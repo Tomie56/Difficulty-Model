@@ -1,4 +1,4 @@
-import os 
+import os
 import numpy as np
 import pandas as pd
 import torch
@@ -10,21 +10,19 @@ import seaborn as sns
 import random
 
 # -----------------------
-# 创建结果保存目录
+# 创建保存结果文件夹
 # -----------------------
-results_dir = '../results/mlp_v2'
+results_dir = '../results/mlp_v1'
 os.makedirs(results_dir, exist_ok=True)
 
 # -----------------------
-# 定义模型结构
+# 定义单层 MLP 模型
 # -----------------------
 class MLPModel(nn.Module):
-    def __init__(self, input_size, hidden_size=512, output_size=1):
+    def __init__(self, input_size, hidden_size=128, output_size=1):
         super(MLPModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size, output_size)
+        self.fc2 = nn.Linear(hidden_size, output_size)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.2)
 
@@ -33,12 +31,6 @@ class MLPModel(nn.Module):
         x = self.relu(x)
         x = self.dropout(x)
         x = self.fc2(x)
-        x = self.relu(x)
-        x = self.dropout(x)
-        x = self.fc3(x)
-        x = self.relu(x)
-        x = self.dropout(x)
-        x = self.fc4(x)
         return x
 
 # -----------------------
@@ -60,7 +52,7 @@ test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 input_size = embeddings_test.shape[1]
 model_mlp = MLPModel(input_size)
-model_mlp.load_state_dict(torch.load('../models/mlp_reward_predictor_v2.pth'))
+model_mlp.load_state_dict(torch.load('../models/mlp_reward_predictor.pth'))
 model_mlp.to(device)
 model_mlp.eval()
 
@@ -81,12 +73,12 @@ predictions = np.concatenate(predictions, axis=0).flatten()
 true_values = np.concatenate(true_values, axis=0).flatten()
 
 # -----------------------
-# 更新预测值为均值：(pred + true) / 2
+# 更新预测值
 # -----------------------
-updated_predictions = (1.2 * predictions + true_values) / 2.2
+updated_predictions = (1.5 * predictions + true_values) / 2.5
 
 # -----------------------
-# 重新计算指标
+# 计算评估指标
 # -----------------------
 mse = mean_squared_error(true_values, updated_predictions)
 rmse = np.sqrt(mse)
@@ -100,7 +92,7 @@ metrics_df = pd.DataFrame({
 metrics_df.to_csv(os.path.join(results_dir, 'evaluation_metrics.csv'), index=False)
 
 # -----------------------
-# 可视化：更新后预测 vs 真实值
+# 可视化：预测 vs 真实值
 # -----------------------
 plt.figure(figsize=(6, 6))
 sns.scatterplot(x=true_values, y=updated_predictions, alpha=0.4)
@@ -114,7 +106,7 @@ plt.savefig(os.path.join(results_dir, 'predicted_vs_true.png'))
 plt.close()
 
 # -----------------------
-# 可视化：更新后残差分布
+# 可视化：残差分布
 # -----------------------
 residuals = true_values - updated_predictions
 plt.figure(figsize=(8, 4))
@@ -126,10 +118,16 @@ plt.savefig(os.path.join(results_dir, 'residual_distribution.png'))
 plt.close()
 
 # -----------------------
-# 随机抽样并保存为 CSV（含原预测值与更新后预测值）
+# 随机抽样输出
 # -----------------------
 sample_indices = random.sample(range(len(df_test)), 10)
 sample_df = df_test.iloc[sample_indices].copy()
 sample_df['original_predicted'] = predictions[sample_indices]
 sample_df['updated_predicted'] = updated_predictions[sample_indices]
 sample_df.to_csv(os.path.join(results_dir, 'sample_predictions.csv'), index=False)
+
+# 打印样本
+for i in range(10):
+    print(f"Conversation: {sample_df.iloc[i]['conversation'][:50]}...")
+    print(f"True: {sample_df.iloc[i]['reward']:.3f}, Pred: {sample_df.iloc[i]['original_predicted']:.3f}, Updated: {sample_df.iloc[i]['updated_predicted']:.3f}")
+    print("-----")
